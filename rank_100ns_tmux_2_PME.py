@@ -246,12 +246,12 @@ if __name__=="__main__":
     warnings.filterwarnings("ignore")
 
     # prepare protein
-    prepare_protein = prepare_protein("./protein_rank_10_complex.pdb", ignore_missing_residues=False)
+    prepare_protein = prepare_protein("./protein_rank_2_complex.pdb", ignore_missing_residues=False)
 
     # prepare ligand
-    pdb_path = "./protein_rank_10_complex.pdb"
+    pdb_path = "./protein_rank_2_complex.pdb"
     ligand_name = "UNL"
-    smiles = "COc1ccc(NC(=O)N2CCOCC2)cc1Cl"
+    smiles = "COc1ccccc1N1CCN(C(=O)Nc2ccccc2F)CC1"
 
     rdkit_ligand = prepare_ligand(pdb_path, ligand_name, smiles)
 
@@ -266,18 +266,18 @@ if __name__=="__main__":
     forcefield = generate_forcefield(rdkit_ligand)
 
     modeller = app.Modeller(complex_topology, complex_positions)
-    modeller.addSolvent(forcefield, padding=1.5 * unit.nanometers, ionicStrength=0.15 * unit.molar)
+    modeller.addSolvent(forcefield, padding=3.0 * unit.nanometers, ionicStrength=0.15 * unit.molar)
 
     platform = mm.Platform.getPlatformByName("CUDA")
     properties = {"DeviceIndex": "0,1,2,3", "Precision": "single"}
 
-    system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.PME)
+    system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.PME, nonbondedCutoff=1.0 * unit.nanometers,)
     integrator = mm.LangevinIntegrator(309.65 * unit.kelvin, 1.0 / unit.picoseconds, 2.0 * unit.femtoseconds)
     simulation = app.Simulation(modeller.topology, system, integrator, platform, properties)
     simulation.context.setPositions(modeller.positions)
 
     simulation.minimizeEnergy()
-    with open("topology_100ns_10.pdb", "w") as pdb_file:
+    with open("finaltest_topology_100ns_2.pdb", "w") as pdb_file:
         app.PDBFile.writeFile(
             simulation.topology,
             simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(),
@@ -286,10 +286,10 @@ if __name__=="__main__":
         )
 
     steps = 50000000
-    write_interval = 500000
+    write_interval = 5000
     log_interval = 50000
     simulation.reporters.append(
-        md.reporters.XTCReporter(file=str("trajectory_100ns_10.xtc"), reportInterval=write_interval)
+        md.reporters.XTCReporter(file=str("finaltest_trajectory_100ns_2.xtc"), reportInterval=write_interval)
     )
     simulation.reporters.append(
         app.StateDataReporter(
@@ -310,6 +310,6 @@ if __name__=="__main__":
     simulation.step(steps)
 
     import os
-    result = "./trajectory_100ns_10.xtc"
+    result = "./finaltest_trajectory_100ns_2.xtc"
     file_info = os.stat(result)
     print(file_info)
