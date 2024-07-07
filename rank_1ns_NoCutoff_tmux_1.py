@@ -246,10 +246,10 @@ if __name__=="__main__":
     warnings.filterwarnings("ignore")
 
     # prepare protein
-    prepare_protein = prepare_protein("./protein_rank_1_complex.pdb", ignore_missing_residues=False)
+    prepare_protein = prepare_protein("./rank1.pdb", ignore_missing_residues=False)
 
     # prepare ligand
-    pdb_path = "./protein_rank_1_complex.pdb"
+    pdb_path = "./rank1.pdb"
     ligand_name = "UNL"
     smiles = "COc1ccccc1N1CCN(C(=O)Nc2ccccc2C)CC1"
 
@@ -271,13 +271,13 @@ if __name__=="__main__":
     platform = mm.Platform.getPlatformByName("CUDA")
     properties = {"DeviceIndex": "0,1,2,3", "Precision": "single"}
 
-    system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.PME)
+    system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.NoCutoff)
     integrator = mm.LangevinIntegrator(309.65 * unit.kelvin, 1.0 / unit.picoseconds, 2.0 * unit.femtoseconds)
     simulation = app.Simulation(modeller.topology, system, integrator, platform, properties)
     simulation.context.setPositions(modeller.positions)
 
     simulation.minimizeEnergy()
-    with open("topology_100ns_1.pdb", "w") as pdb_file:
+    with open("topology_1ns_NoCutoff_1.pdb", "w") as pdb_file:
         app.PDBFile.writeFile(
             simulation.topology,
             simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(),
@@ -285,11 +285,11 @@ if __name__=="__main__":
             keepIds=True,
         )
 
-    steps = 50000000
-    write_interval = 500000
+    steps = 500000
+    write_interval = 500
     log_interval = 50000
     simulation.reporters.append(
-        md.reporters.XTCReporter(file=str("trajectory_100ns_1.xtc"), reportInterval=write_interval)
+        md.reporters.XTCReporter(file=str("trajectory_1ns_NoCutoff_1.xtc"), reportInterval=write_interval)
     )
     simulation.reporters.append(
         app.StateDataReporter(
@@ -310,6 +310,6 @@ if __name__=="__main__":
     simulation.step(steps)
 
     import os
-    result = "./trajectory_100ns_1.xtc"
+    result = "./trajectory_1ns_NoCutoff_1.xtc"
     file_info = os.stat(result)
     print(file_info)
