@@ -266,20 +266,18 @@ if __name__=="__main__":
     forcefield = generate_forcefield(rdkit_ligand)
 
     modeller = app.Modeller(complex_topology, complex_positions)
-    modeller.addSolvent(forcefield, padding=1.0 * unit.nanometers, ionicStrength=0.15 * unit.molar)
+    modeller.addSolvent(forcefield, padding=1.5 * unit.nanometers, ionicStrength=0.15 * unit.molar)
 
     platform = mm.Platform.getPlatformByName("CUDA")
     properties = {"DeviceIndex": "0,1,2,3", "Precision": "single"}
 
-    # PME, constraints 추가
-    system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.PME, constraints=app.HBonds, nonbondedCutoff=1.0 * unit.nanometers, ewaldErrorTolerance=0.0005, rigidWater=True)
+    system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.CutoffNonPeriodic, nonbondedCutoff=1.0 * unit.nanometers,)
     integrator = mm.LangevinIntegrator(309.65 * unit.kelvin, 1.0 / unit.picoseconds, 2.0 * unit.femtoseconds)
     simulation = app.Simulation(modeller.topology, system, integrator, platform, properties)
     simulation.context.setPositions(modeller.positions)
 
-    # minimizeEnergy parameters 추가
-    simulation.minimizeEnergy(maxIterations=5000)
-    with open("finaltest_pme_TEST_topology_100ns_2.pdb", "w") as pdb_file:
+    simulation.minimizeEnergy()
+    with open("finaltest_topology_100ns_2.pdb", "w") as pdb_file:
         app.PDBFile.writeFile(
             simulation.topology,
             simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(),
@@ -287,20 +285,11 @@ if __name__=="__main__":
             keepIds=True,
         )
 
-    #steps = 50000 # 100ps 동안
-    #write_interval = 500
-    #log_interval = 500
-
-    steps = 50000000 # 100ns 동안
+    steps = 25000000
     write_interval = 500
     log_interval = 50000
-
-
-    #steps = 20000000 # 100ns 동안, step당 5fs
-    #write_interval = 5000
-    #log_interval = 50000
     simulation.reporters.append(
-        md.reporters.XTCReporter(file=str("finaltest_pme_TEST_trajectory_100ns_2.xtc"), reportInterval=write_interval)
+        md.reporters.XTCReporter(file=str("finaltest_trajectory_100ns_2.xtc"), reportInterval=write_interval)
     )
     simulation.reporters.append(
         app.StateDataReporter(
@@ -321,6 +310,6 @@ if __name__=="__main__":
     simulation.step(steps)
 
     import os
-    result = "./finaltest_pme_TEST_trajectory_100ns_2.xtc"
+    result = "./finaltest_trajectory_100ns_2.xtc"
     file_info = os.stat(result)
     print(file_info)

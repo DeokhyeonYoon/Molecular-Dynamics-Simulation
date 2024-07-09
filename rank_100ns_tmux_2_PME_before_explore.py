@@ -272,14 +272,14 @@ if __name__=="__main__":
     properties = {"DeviceIndex": "0,1,2,3", "Precision": "single"}
 
     # PME, constraints 추가
-    system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.PME, constraints=app.HBonds, nonbondedCutoff=1.0 * unit.nanometers, ewaldErrorTolerance=0.0005, rigidWater=True)
+    system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.PME, constraints=app.HBonds, nonbondedCutoff=1.0 * unit.nanometers, rigidWater=True)
     integrator = mm.LangevinIntegrator(309.65 * unit.kelvin, 1.0 / unit.picoseconds, 2.0 * unit.femtoseconds)
     simulation = app.Simulation(modeller.topology, system, integrator, platform, properties)
     simulation.context.setPositions(modeller.positions)
 
     # minimizeEnergy parameters 추가
-    simulation.minimizeEnergy(maxIterations=5000)
-    with open("finaltest_pme_TEST_topology_100ns_2.pdb", "w") as pdb_file:
+    simulation.minimizeEnergy()
+    with open("finaltest_pme_before_explore_topology_100ns_2.pdb", "w") as pdb_file:
         app.PDBFile.writeFile(
             simulation.topology,
             simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(),
@@ -287,12 +287,16 @@ if __name__=="__main__":
             keepIds=True,
         )
 
+    simulation.step(100000)
+
+
     #steps = 50000 # 100ps 동안
     #write_interval = 500
     #log_interval = 500
 
     steps = 50000000 # 100ns 동안
-    write_interval = 500
+    #write_interval = 5000
+    checkpoint_interval = 500
     log_interval = 50000
 
 
@@ -300,7 +304,7 @@ if __name__=="__main__":
     #write_interval = 5000
     #log_interval = 50000
     simulation.reporters.append(
-        md.reporters.XTCReporter(file=str("finaltest_pme_TEST_trajectory_100ns_2.xtc"), reportInterval=write_interval)
+        md.reporters.XTCReporter(file=str("checkpoint.chk"), reportInterval=checkpoint_interval)
     )
     simulation.reporters.append(
         app.StateDataReporter(
@@ -316,11 +320,20 @@ if __name__=="__main__":
             separator="\t",
             )
         )
+    
+    try:
+        simulation.step(steps)
+    except Exception as e:
+        print(f"Simulation failed with error: {e}")
+        simulation.saveCheckpoint("failed_checkpoint.chk")
+
+    with open("final_output.pdb", "w") as output_file:
+        app.PDBFile.writeFile(simulation.topology, simulation.context.getState(getPositions=True).getPositions(), output_file)
 
     simulation.context.setVelocitiesToTemperature(309.65 * unit.kelvin)
     simulation.step(steps)
 
     import os
-    result = "./finaltest_pme_TEST_trajectory_100ns_2.xtc"
+    result = "./finaltest_pme_and_temperature_TEST_topology_100ns_2.xtc"
     file_info = os.stat(result)
     print(file_info)

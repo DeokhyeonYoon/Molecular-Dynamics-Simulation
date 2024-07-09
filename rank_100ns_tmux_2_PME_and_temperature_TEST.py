@@ -273,13 +273,13 @@ if __name__=="__main__":
 
     # PME, constraints 추가
     system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.PME, constraints=app.HBonds, nonbondedCutoff=1.0 * unit.nanometers, ewaldErrorTolerance=0.0005, rigidWater=True)
-    integrator = mm.LangevinIntegrator(309.65 * unit.kelvin, 1.0 / unit.picoseconds, 2.0 * unit.femtoseconds)
+    integrator = mm.LangevinIntegrator(300 * unit.kelvin, 1.0 / unit.picoseconds, 2.0 * unit.femtoseconds)
     simulation = app.Simulation(modeller.topology, system, integrator, platform, properties)
     simulation.context.setPositions(modeller.positions)
 
     # minimizeEnergy parameters 추가
     simulation.minimizeEnergy(maxIterations=5000)
-    with open("finaltest_pme_TEST_topology_100ns_2.pdb", "w") as pdb_file:
+    with open("finaltest_pme_and_temperature_TEST_topology_100ns_2.pdb", "w") as pdb_file:
         app.PDBFile.writeFile(
             simulation.topology,
             simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(),
@@ -300,7 +300,7 @@ if __name__=="__main__":
     #write_interval = 5000
     #log_interval = 50000
     simulation.reporters.append(
-        md.reporters.XTCReporter(file=str("finaltest_pme_TEST_trajectory_100ns_2.xtc"), reportInterval=write_interval)
+        md.reporters.XTCReporter(file=str("finaltest_pme_and_temperature_TEST_topology_100ns_2.xtc"), reportInterval=write_interval)
     )
     simulation.reporters.append(
         app.StateDataReporter(
@@ -317,10 +317,10 @@ if __name__=="__main__":
             )
         )
 
-    simulation.context.setVelocitiesToTemperature(309.65 * unit.kelvin)
+    simulation.context.setVelocitiesToTemperature(300 * unit.kelvin)
     simulation.step(steps)
 
     import os
-    result = "./finaltest_pme_TEST_trajectory_100ns_2.xtc"
+    result = "./finaltest_pme_and_temperature_TEST_topology_100ns_2.xtc"
     file_info = os.stat(result)
     print(file_info)
