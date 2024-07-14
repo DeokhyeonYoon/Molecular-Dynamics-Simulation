@@ -271,25 +271,25 @@ if __name__=="__main__":
     platform = mm.Platform.getPlatformByName("CUDA")
     properties = {"DeviceIndex": "0,1,2,3", "Precision": "single"}
 
-    system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.PME, nonbondedCutoff=1.0 * unit.nanometers)
+    system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.NoCutoff)
     integrator = mm.LangevinIntegrator(309.65 * unit.kelvin, 1.0 / unit.picoseconds, 2.0 * unit.femtoseconds)
     simulation = app.Simulation(modeller.topology, system, integrator, platform, properties)
     simulation.context.setPositions(modeller.positions)
 
     simulation.minimizeEnergy()
-    with open("topology_100ns_1.pdb", "w") as pdb_file:
+    with open("Final_topology_50ns_NoCutoff_8.pdb", "w") as pdb_file:
         app.PDBFile.writeFile(
             simulation.topology,
             simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(),
             file=pdb_file,
             keepIds=True,
         )
-    steps = 50000 # 100 ps
-    #steps = 50000000
+
+    steps = 25000000
     write_interval = 500
     log_interval = 50000
     simulation.reporters.append(
-        md.reporters.XTCReporter(file=str("trajectory_100ns_1.xtc"), reportInterval=write_interval)
+        md.reporters.XTCReporter(file=str("Final_trajectory_50ns_NoCutoff_8.xtc"), reportInterval=write_interval)
     )
     simulation.reporters.append(
         app.StateDataReporter(
@@ -310,6 +310,6 @@ if __name__=="__main__":
     simulation.step(steps)
 
     import os
-    result = "./trajectory_100ns_1.xtc"
+    result = "./Final_trajectory_50ns_NoCutoff_8.xtc"
     file_info = os.stat(result)
     print(file_info)

@@ -277,7 +277,7 @@ if __name__=="__main__":
     simulation.context.setPositions(modeller.positions)
 
     simulation.minimizeEnergy()
-    with open("topology_50ns_NoCutoff_1.pdb", "w") as pdb_file:
+    with open("Final_topology_50ns_NoCutoff_2_twice.pdb", "w") as pdb_file:
         app.PDBFile.writeFile(
             simulation.topology,
             simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(),
@@ -289,7 +289,7 @@ if __name__=="__main__":
     write_interval = 500
     log_interval = 50000
     simulation.reporters.append(
-        md.reporters.XTCReporter(file=str("trajectory_50ns_NoCutoff_1.xtc"), reportInterval=write_interval)
+        md.reporters.XTCReporter(file=str("Final_trajectory_50ns_NoCutoff_2_twice.xtc"), reportInterval=write_interval)
     )
     simulation.reporters.append(
         app.StateDataReporter(
@@ -310,6 +310,6 @@ if __name__=="__main__":
     simulation.step(steps)
 
     import os
-    result = "./trajectory_50ns_NoCutoff_1.xtc"
+    result = "./Final_trajectory_50ns_NoCutoff_2_twice.xtc"
     file_info = os.stat(result)
     print(file_info)
