@@ -246,12 +246,12 @@ if __name__=="__main__":
     warnings.filterwarnings("ignore")
 
     # prepare protein
-    prepare_protein = prepare_protein("./rank8.pdb", ignore_missing_residues=False)
+    prepare_protein = prepare_protein("./rank6.pdb", ignore_missing_residues=False)
 
     # prepare ligand
-    pdb_path = "./rank8.pdb"
+    pdb_path = "./rank6.pdb"
     ligand_name = "UNL"
-    smiles = "CCOc1ccccc1N1CCN(C(=O)Nc2ccccc2)CC1"
+    smiles = "COc1cccc(NC(=O)N2CCOCC2)c1"
 
     rdkit_ligand = prepare_ligand(pdb_path, ligand_name, smiles)
 
@@ -277,7 +277,7 @@ if __name__=="__main__":
     simulation.context.setPositions(modeller.positions)
 
     simulation.minimizeEnergy()
-    with open("Final_topology_50ns_NoCutoff_8.pdb", "w") as pdb_file:
+    with open("Final_topology_50ns_NoCutoff_6.pdb", "w") as pdb_file:
         app.PDBFile.writeFile(
             simulation.topology,
             simulation.context.getState(getPositions=True, enforcePeriodicBox=True).getPositions(),
@@ -289,7 +289,7 @@ if __name__=="__main__":
     write_interval = 500
     log_interval = 50000
     simulation.reporters.append(
-        md.reporters.XTCReporter(file=str("Final_trajectory_50ns_NoCutoff_8.xtc"), reportInterval=write_interval)
+        md.reporters.XTCReporter(file=str("Final_trajectory_50ns_NoCutoff_6.xtc"), reportInterval=write_interval)
     )
     simulation.reporters.append(
         app.StateDataReporter(
@@ -310,6 +310,6 @@ if __name__=="__main__":
     simulation.step(steps)
 
     import os
-    result = "./Final_trajectory_50ns_NoCutoff_8.xtc"
+    result = "./Final_trajectory_50ns_NoCutoff_6.xtc"
     file_info = os.stat(result)
     print(file_info)

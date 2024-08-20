@@ -246,12 +246,12 @@ if __name__=="__main__":
     warnings.filterwarnings("ignore")
 
     # prepare protein
-    prepare_protein = prepare_protein("./rank1.pdb", ignore_missing_residues=False)
+    prepare_protein = prepare_protein("./rank10.pdb", ignore_missing_residues=False)
 
     # prepare ligand
-    pdb_path = "./rank1.pdb"
+    pdb_path = "./rank10.pdb"
     ligand_name = "UNL"
-    smiles = "COc1ccccc1N1CCN(C(=O)Nc2ccccc2C)CC1"
+    smiles = "COc1ccc(NC(=O)N2CCOCC2)cc1Cl"
 
     rdkit_ligand = prepare_ligand(pdb_path, ligand_name, smiles)
 
@@ -269,7 +269,7 @@ if __name__=="__main__":
     modeller.addSolvent(forcefield, padding=1.5 * unit.nanometers, ionicStrength=0.15 * unit.molar)
 
     platform = mm.Platform.getPlatformByName("CUDA")
-    properties = {"DeviceIndex": "0,1,2,3", "Precision": "single"}
+    properties = {"DeviceIndex": "3", "Precision": "single"}
 
     system = forcefield.createSystem(modeller.topology, nonbondedMethod=app.NoCutoff)
     integrator = mm.LangevinIntegrator(309.65 * unit.kelvin, 1.0 / unit.picoseconds, 2.0 * unit.femtoseconds)
